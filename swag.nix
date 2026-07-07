@@ -9,7 +9,9 @@ let
     typ = if (i.__type or null) == null then throw "undefined type: ${builtins.toJSON i}" else i.__type;
   in
     if typ == "object" then
-      if builtins.isAttrs content then
+      if content == {} then
+        {}
+      else if builtins.isAttrs content then
         lib.mapAttrs (_: v: render v) (lib.filterAttrs (n: _: n != "__type") content)
       else throw "object assertion: ${builtins.toJSON content}"
     else if typ == "array" then
