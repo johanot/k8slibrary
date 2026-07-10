@@ -7,7 +7,10 @@ function doc_name($deploy, $doc) {
   if (!isset($doc->kind) || !isset($doc->metadata->name)) {
     return false;
   }
-  $str  = strtolower($deploy). "-";
+  $str = "";
+  if (!empty($deploy) && $deploy != "-" && $deploy != "--") {
+    $str .= strtolower($deploy). "-";
+  }
   $str .= strtolower($doc->kind). "-";
   $str .= $doc->metadata->name;
   return $str;
