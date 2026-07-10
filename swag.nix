@@ -201,5 +201,19 @@ in
         [
           (setList "io.k8s.api.core.v1.PodSpec" phrase)
         ];
+    setRegistryHost = host: [
+      (mapAPIType "io.k8s.api.core.v1.Container" (old:
+        let
+          oldImageRef = old.__content.image.__content;
+          pathPart = with builtins; tail (filter isString (split "/" oldImageRef));
+        in
+            old // ({ __content = old.__content // {
+              image = {
+                __content = "${host}/${builtins.concatStringsSep "/" pathPart}";
+                __type = "string";
+              };
+            }; })
+      ))
+    ];
   };
 }
