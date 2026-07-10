@@ -160,6 +160,8 @@ in
     setNamespace = namespace: let phrase = { inherit namespace; }; in [
       (setSimple "io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta" phrase)
       (setSimple "io.k8s.api.rbac.v1.Subject" phrase)
+      (setSimple "io.k8s.api.admissionregistration.v1.ServiceReference" phrase)
+      (setSimple "io.k8s.apiextensions-apiserver.pkg.apis.apiextensions.v1.ServiceReference" phrase)
     ];
     scale = replicas: let phrase = { replicas = assert builtins.isInt replicas; replicas; }; in [
       (setSimple "io.k8s.api.apps.v1.DeploymentSpec" phrase)
