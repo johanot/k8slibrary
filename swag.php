@@ -31,6 +31,10 @@ function doc_enrich($doc) {
   }
   $out->{"__type"} = "object";
 
+  // enforce doc metadata to be of type "io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta", because
+  // for CRDs which we don't have the type definition for, the metadata is just a generic object otherwise
+  $out->{"__content"}->metadata->{"__api_type"} = "io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta";
+
   return $out;
 }
 
