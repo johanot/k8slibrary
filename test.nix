@@ -7,6 +7,7 @@ let
       flake.outputs.nixosModules.swag
       ({ config, ... }: {
         config.swag.apps.${p} = {
+          filters.doc = config.swag.lib.filterOutAPIVersionKind "v1" "Namespace";
           package = flake.manifests.${p};
           patches =
             config.swag.lib.setNamespace "${p}"

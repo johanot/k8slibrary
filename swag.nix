@@ -143,6 +143,7 @@ in
   };
 
   config.swag.lib = rec{
+    filterOutAPIVersionKind = apiVersion: kind: _: doc: !(doc.__content.apiVersion.__content == apiVersion && doc.__content.kind.__content == kind);
     mapAPIType = type: f: mutate' type f;
     injectContent = type: new: old: old // { "__content" = old.__content // (lib.mapAttrs (n: v: {
       __type = type;

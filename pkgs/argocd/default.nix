@@ -35,8 +35,10 @@ stdenv.mkDerivation rec{
     cp manifests/ha/namespace-install.yaml templated
     cp manifests/crds/*.yaml templated
     rm templated/kustomization.yaml
+    cp ${./namespace.yaml} templated/namespace.yaml
     yq -o json -s '.kind + "_" + .metadata.name + ".json"' templated/*.yaml
     cp *.json templated
+
     ${yamlPHP}/bin/php ${../../swag.php} ${deployName} templated/ ${k8sapi} > enriched.json
   '';
 
