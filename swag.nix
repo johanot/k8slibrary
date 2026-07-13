@@ -64,6 +64,13 @@ let
         type = listOf anything;
         default = [];
       };
+
+      filters = mkOption {
+        type = attrs;
+        default = {
+          doc = (name: doc: true);
+        };
+      };
     };
 
     config.input = builtins.fromJSON (builtins.readFile "${config.package}/enriched.json");
@@ -71,7 +78,7 @@ let
 
     config.lib = rec{
       renderDocs = i:
-        lib.mapAttrs (n: v: render (patch v)) i;
+        lib.mapAttrs (n: v: render (patch v)) (lib.filterAttrs config.filters.doc i);
 
       patch = d: lib.foldl' (a: f: f a) d config.patches;
     };
