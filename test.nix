@@ -10,6 +10,13 @@ let
           filters.doc = config.swag.lib.filterOutAPIVersionKind "v1" "Namespace";
           package = flake.manifests.${p};
           patches =
+            (config.swag.lib.addToleration {
+              effect = "NoSchedule";
+              key = "tier";
+              operator = "Equal";
+              value = "platform";
+            })
+            ++
             config.swag.lib.setNamespace "${p}"
             ++
             config.swag.lib.scale 1

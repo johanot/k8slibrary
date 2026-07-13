@@ -190,6 +190,26 @@ in
     addConfigMapData = name: data: let phrase = { inherit data; }; in [
       (setSimpleNamed "io.k8s.api.core.v1.ConfigMap" name phrase)
     ];
+    addToleration = { effect, key, operator, value }: let phrase = { __content = {
+      effect = {
+        __content = effect;
+        __type = "string";
+      };
+      key = {
+        __content = key;
+        __type = "string";
+      };
+      operator = {
+        __content = operator;
+        __type = "string";
+      };
+      value = {
+        __content = value;
+        __type = "string";
+      };
+    }; __type = "object"; }; in [
+      (appendList "io.k8s.api.core.v1.PodSpec" "tolerations" phrase)
+    ];
     removePodAntiAffinityRule = rule: [
       (removeProperty "io.k8s.api.core.v1.PodAntiAffinity" rule)
     ];
