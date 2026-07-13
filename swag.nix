@@ -160,6 +160,23 @@ in
           };
         };
     };
+    addLabel = name: value: [
+      (mapAPIType "io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+        (old: old // ({
+          __content = old.__content // {
+            labels = {
+              __type = "object";
+              __content = (old.__content.labels.__content or {}) // {
+                "${name}" = {
+                  __type = "string";
+                  __content = value;
+                };
+              };
+            };
+          };
+        }))
+      )
+    ];
     removeProperty = type: property: mapAPIType type (removePropertyPlumbing property);
     setSimple = type: new: mapAPIType type (injectContent "string" new);
     appendList = type: property: new: mapAPIType type (appendListPlumbing property new);
