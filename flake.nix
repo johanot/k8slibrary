@@ -69,7 +69,7 @@
             repoUrl = "https://azure.github.io/secrets-store-csi-driver-provider-azure/charts";
             chartName = "csi-secrets-store-provider-azure";
             chartVersion = "1.6.1";
-            chartHash = "sha256-KoXUsNgbcAMB73kfxD+iLfB2jyEWtJa/fsNf75dwevM=";
+            chartHash = "sha256-r4qM94mXQFzZoTCyLkN7N4FYkwLWr7hVBLvLRR2A6i8=";
           };
           kubernetes-version = "1.31.0";
         };
