@@ -269,7 +269,8 @@ in
         [
           (setList "io.k8s.api.core.v1.PodSpec" phrase)
         ];
-    setRegistryHost = host: [
+    setRegistryHost = host: setRegistryHostWithoutTrailingSlash "${host}/";
+    setRegistryHostWithoutTrailingSlash = host: [
       (mapAPIType "io.k8s.api.core.v1.Container" (old:
         let
           oldImageRef = old.__content.image.__content;
@@ -277,7 +278,7 @@ in
         in
             old // ({ __content = old.__content // {
               image = {
-                __content = "${host}/${builtins.concatStringsSep "/" pathPart}";
+                __content = "${host}${builtins.concatStringsSep "/" pathPart}";
                 __type = "string";
               };
             }; })
