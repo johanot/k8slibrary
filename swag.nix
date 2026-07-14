@@ -131,6 +131,12 @@ let
     };
   };
 
+  typeEnrichInternal = acc: input: with builtins;
+    if isAttrs input then { __type = "object"; __content = lib.mapAttrs (n: v: typeEnrichInternal acc v) input; }
+    else if isList input then { __type = "array"; __content = map (v: typeEnrichInternal acc v) input; }
+    else { __type = "string"; __content = input; };
+
+  typeEnrich = typeEnrichInternal {};
 in
 {
   options.swag.apps = lib.mkOption {
@@ -182,6 +188,23 @@ in
     appendList = type: property: new: mapAPIType type (appendListPlumbing property new);
     setList = type: new: mapAPIType type (injectContent "array" new);
     setSimpleNamed = type: name: new: mapAPIType type (old: let oName = getMetadataName old; in if oName == name then injectContent "string" new old else old);
+    setContentN = addIfNotExists: ctx: path: new:
+    let
+      next = builtins.head path;
+      remainder = builtins.tail path;
+    in
+      if (builtins.hasAttr next ctx.__content) || addIfNotExists then
+        ctx // {
+          __content = ctx.__content // {
+            "${next}" = if remainder == [] then new else setContentN addIfNotExists ctx.__content."${next}" remainder new;
+          };
+        }
+      else
+        throw "${toString path} does not exist in context";
+
+    setContentByPath = new: type: path: [
+      (mapAPIType type (old: old // (setContentN false old path (typeEnrich new))))
+    ];
     setNamespace = namespace: let phrase = { inherit namespace; }; in [
       (setSimple "io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta" phrase)
       (setSimple "io.k8s.api.rbac.v1.Subject" phrase)

@@ -125,8 +125,9 @@ if (!empty($crdPath)) {
       //fwrite($stderr, "CRD $f is missing group/version/kind\n");
       continue;
     }
+    $reverseGroup = implode(".", array_reverse(explode(".", $group)));
     $crds["$group/$versionName/$kind"] = [
-      "typeName" => "$group.$versionName.$kind",
+      "typeName" => "$reverseGroup.$versionName.$kind",
       "isNamespaced" => @$content["spec"]["scope"] === "Namespaced"
     ];
   }
