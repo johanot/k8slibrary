@@ -22,7 +22,8 @@ function doc_enrich($doc) {
 
   $kind = $doc->kind;
   list ($group, $version) = strpos($doc->apiVersion, "/") !== false ? explode('/', $doc->apiVersion) : ["", $doc->apiVersion];
-  $api_type_name = @$api["$group/$version/$kind"];
+  $api_type_name = @$api["$group/$version/$kind"]["typeName"];
+  $is_namespaced = @$api["$group/$version/$kind"]["isNamespaced"];
   $api_type = @$definitions[$api_type_name];
   $properties = isset($api_type["properties"]) ? $api_type["properties"] : [];
 
@@ -31,6 +32,9 @@ function doc_enrich($doc) {
 
   if (isset($api_type_name)) {
     $out->{"__api_type"} = $api_type_name;
+  }
+  if (isset($is_namespaced)) {
+    $out->{"__is_namespaced"} = $is_namespaced;
   }
   $out->{"__type"} = "object";
 
@@ -74,15 +78,19 @@ function property_enrich($content, $meta) {
     }
     $out->{"__type"} = "object";
   } else {
-    die("Unknown type");
+    fwrite($stderr, "Unknown type\n");
+    exit(1);
   }
 
   return $out;
 }
 
+$stderr = fopen('php://stderr', 'w');
+
 $deployName = $argv[1];
 $inputDirectory = $argv[2];
 $swaggerPath = $argv[3];
+$crdPath = @$argv[4];
 
 // find json files recursively in inputDirectory
 $files = [];
@@ -98,6 +106,32 @@ foreach ($iterator as $file) {
 
 $swagger = file_get_contents($swaggerPath);
 
+$crds = [];
+if (!empty($crdPath)) {
+  $crdDir = scandir($crdPath);
+  $crdFiles = array_filter($crdDir, function ($f) use ($crdPath) {
+    return is_file($crdPath . "/" . $f) && pathinfo($f, PATHINFO_EXTENSION) == "yaml";
+  });
+
+  foreach ($crdFiles as $f) {
+    $content = file_get_contents($crdPath . "/" . $f);
+    $content = yaml_parse($content);
+
+    $group = @$content["spec"]["group"];
+    $version = @$content["spec"]["versions"][0];
+    $versionName = @$version["name"];
+    $kind = @$content["spec"]["names"]["kind"];
+    if (empty($group) || empty($versionName) || empty($kind)) {
+      //fwrite($stderr, "CRD $f is missing group/version/kind\n");
+      continue;
+    }
+    $crds["$group/$versionName/$kind"] = [
+      "typeName" => "$group.$versionName.$kind",
+      "isNamespaced" => @$content["spec"]["scope"] === "Namespaced"
+    ];
+  }
+}
+
 $definitions = json_decode($swagger, true)["definitions"];
 $api = [];
 foreach ($definitions as $name => $definition) {
@@ -105,9 +139,12 @@ foreach ($definitions as $name => $definition) {
     $group = $definition["x-kubernetes-group-version-kind"][0]["group"];
     $version = $definition["x-kubernetes-group-version-kind"][0]["version"];
     $kind = $definition["x-kubernetes-group-version-kind"][0]["kind"];
-    $api["$group/$version/$kind"] = $name;
+    $api["$group/$version/$kind"] = [
+      "typeName" => $name
+    ];
   }
 }
+$api = array_merge($api, $crds);
 
 $docs = [];
 foreach ($files as $f) {

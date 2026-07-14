@@ -32,18 +32,22 @@ stdenv.mkDerivation rec{
 
   buildPhase = ''
     mkdir templated
+    mkdir crds
     cp manifests/ha/namespace-install.yaml templated
     cp manifests/crds/*.yaml templated
+    cp manifests/crds/*.yaml crds
     rm templated/kustomization.yaml
     cp ${./namespace.yaml} templated/namespace.yaml
+    cp ${./application.yaml} templated/application.yaml
     yq -o json -s '.kind + "_" + .metadata.name + ".json"' templated/*.yaml
     cp *.json templated
 
-    ${yamlPHP}/bin/php ${../../swag.php} ${deployName} templated/ ${k8sapi} > enriched.json
+    ${yamlPHP}/bin/php ${../../swag.php} ${deployName} templated/ ${k8sapi} crds/ > enriched.json 2>>debug.log
   '';
 
   installPhase = ''
     mkdir -p $out
+    cp debug.log $out
     cp -r templated $out
     cp enriched.json $out
   '';
